@@ -1,4 +1,4 @@
-name: Check classroom example
+name: Check slide master
 on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
@@ -14,5 +14,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      - run: python -m pip install -r requirements.txt
       - run: python -m unittest discover -s tests -v
-      - run: python .agents/skills/weekly-assistant/scripts/planner.py --input data/demo.json --week 2026-11-23 --out output/demo
+      - run: python .agents/skills/slide-master/scripts/build_deck.py --input data/sensor-demo.json --out output/demo
+      - run: python .agents/skills/slide-master/scripts/inspect_deck.py --input data/sensor-demo.json --pptx output/demo/slides.pptx

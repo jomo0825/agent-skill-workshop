@@ -1,104 +1,110 @@
-# 我的個人一週生活助理｜Agent Skill 三小時工作坊
+# 投影片生成大師｜Agent Skill 技術實作
 
-**先跑出成果，再看懂、改一項、重新驗證。** 給工程／資訊背景產學專班學生的完整教學範例。
+**先看成品，直接讀 SKILL.md，再自己跑一次。**
 
-![個人助理報告橫幅](.agents/skills/weekly-assistant/assets/banner.png)
+**[打開完整 SKILL.md](.agents/skills/slide-master/SKILL.md)** · **[下載六頁 PowerPoint](examples/demo/slides.pptx)** · **[逐頁預覽](examples/demo/preview.md)** · **[PDF](examples/demo/slides.pdf)**
 
-這個 Skill 讀取模擬行程與待辦，利用 Python 找出時間衝突、安排待辦，再將已生成的插畫嵌入 HTML 週計畫。包含可直接執行的程式、完整 Skill、設計單範本、填寫範例與課堂練習。
+![六頁成果預覽](examples/demo/overview.png)
 
-## 先看成果：不用 Agent 也能體驗
+這個專案讓 Agent 沿用 Python 腳本與素材，把 JSON 內容和模擬感測器數據製作成可編輯 PowerPoint。圖表、表格、文字與技術流程圖都是原生投影片物件，AI 配圖保存於 assets，日常執行不重新生圖。
 
-1. 在 GitHub 按 **Code → Download ZIP**，解壓縮。或使用 Git：
+## 先拆開看
 
-   ```sh
-   git clone https://github.com/jomo0825/agent-skill-workshop.git
-   cd agent-skill-workshop
-   ```
+從 [SKILL.md](.agents/skills/slide-master/SKILL.md) 順著連結看三個位置：
 
-2. 直接用瀏覽器開啟 [examples/demo/week-plan.html](examples/demo/week-plan.html)。GitHub 文字預覽不會執行 HTML，請先下載；無須架設網站。
-3. 先觀察：上課與看牙衝突、4 項待辦已安排、2 項未安排。再讀 [預期結果](docs/expected-results.md)。
+- [scripts/build_deck.py](.agents/skills/slide-master/scripts/build_deck.py)：JSON 如何變成六頁簡報。
+- [assets/sensor-hero.png](.agents/skills/slide-master/assets/sensor-hero.png)：封面實際使用的生成配圖。
+- [references/input-format.md](.agents/skills/slide-master/references/input-format.md)：程式接受的欄位與限制。
 
-## 三分鐘執行
+看懂就可以直接往下修改，後面的說明供需要時查閱，不必依序讀完。
 
-準備 **Python 3.10 以上**，不需要 pip install、不需要 API 金鑰，也不需要日曆帳號。在解壓縮後的專案根目錄開啟終端機：
+## 五分鐘執行
 
-```sh
-python .agents/skills/weekly-assistant/scripts/planner.py --input data/demo.json --week 2026-11-23 --out output/demo
-```
-
-Windows 若找不到 `python`，可試 `py -3`；macOS／Linux 通常可使用 `python3`。確認版本在 3.10 以上。
-
-執行後以瀏覽器開啟 `output/demo/week-plan.html`。同一資料夾的 `plan.json` 是可核對的分析結果。輸出檔同名會覆寫，做不同實驗請換 `--out`。
-
-再換一週，程式與圖片都不用改：
+先下載完整專案：GitHub 的 **Code → Download ZIP**，解壓縮後在專案根目錄開啟終端機。也可用 Git：
 
 ```sh
-python .agents/skills/weekly-assistant/scripts/planner.py --input data/second-week.json --week 2026-11-30 --out output/second-week
+git clone https://github.com/jomo0825/agent-skill-workshop.git
+cd agent-skill-workshop
 ```
 
-## 讓 Agent 使用 Skill
+需要 Python 3.10 以上。課前完成套件安裝：
 
-在 Codex 中開啟這個專案根目錄。Skill 放在 `.agents/skills/weekly-assistant/`，可依專案範圍探索。若環境支援明確引用，可使用 `$weekly-assistant`；實際介面依所用 Agent 平台而異。
+```sh
+python -m pip install -r requirements.txt
+```
 
-將以下請求交給 Agent：
+執行範例並核對成果：
 
-> 請使用這個專案的 weekly-assistant Skill，讀取 data/demo.json，規劃從 2026-11-23 開始的一週。沿用現有 Python 與圖片，輸出至 output/agent-demo。請實際執行，列出衝突與未安排原因，並給我 HTML 與 JSON 的位置。
+```sh
+python .agents/skills/slide-master/scripts/build_deck.py --input data/sensor-demo.json --out output/demo
+python .agents/skills/slide-master/scripts/inspect_deck.py --pptx output/demo/slides.pptx --input data/sensor-demo.json
+```
 
-若平台沒有自動發現 Skill，可明確請 Agent 讀取 `.agents/skills/weekly-assistant/SKILL.md` 後照指示執行。仍需要該環境具有本機檔案與 Python 執行能力；純聊天視窗不會只因上傳檔案就自動具備這些能力。
+開啟 `output/demo/slides.pptx`。`report.json` 是本次的統計與產出資訊。macOS／Linux 若使用 `python3`，請將上述 python 改為 python3；Windows 若找不到 python，可使用已安裝的 `py -3`。PowerPoint 或 LibreOffice 可開啟成品，需安裝繁體中文字型；字型替換可能影響版面。
 
-## 這個專案怎麼讀
+不需要模型 API 金鑰。Python 腳本只執行本機資料處理及簡報產生；要由 Agent 完成整個流程，另在具備檔案及 Python 執行能力的 Agent 環境中使用 Skill。
+
+## 讓 Agent 操作
+
+在 Codex 中開啟專案根目錄，使用專案 Skill `slide-master`。可直接交代：
+
+> 請使用 slide-master，讀取 data/sensor-demo.json，沿用既有腳本與配圖，實際產生可編輯 PowerPoint，輸出到 output/agent-demo。執行 inspect_deck.py 核對後，給我 PPTX 與 report.json 的位置。
+
+若介面沒有自動找到 Skill，明確請 Agent 讀取 `.agents/skills/slide-master/SKILL.md` 並依其指示操作。純文字聊天環境仍需另外具備工具，才可實際執行與存檔。
+
+## 立即改一項
+
+複製 `data/sensor-demo.json`，修改 title 後重跑，開啟輸出確認改變。想直接比較第二組數據與配色：
+
+```sh
+python .agents/skills/slide-master/scripts/build_deck.py --input data/sensor-updated.json --out output/updated
+```
+
+兩組輸入都用同一套腳本與配圖。新增版型時修改對應 `add_*` 函式，不必重新生成整支程式。配圖可另存版本，再以 `--hero 圖片路徑` 指定。
+
+## 六頁內容與可核對結果
+
+1. 感測器資料分析專案封面。
+2. 系統架構：原生可編輯節點。
+3. 處理流程：原生可編輯圖形。
+4. 測試數據：兩組數列的原生折線圖。
+5. 誤差結果：計算數字與可編輯表格。
+6. 結論與重現。
+
+所有數據為教學模擬值。第一組 6 筆，MAE 0.300 °C、最大絕對誤差 0.500 °C。第二組 4 筆，MAE 0.150 °C、最大絕對誤差 0.300 °C。腳本未連接實際感測器，也不以這些數字宣稱產品性能。
+
+## 專案地圖
 
 ```text
-agent-skill-workshop/
-├── README.md                         先從這裡開始
-├── docs/
-│   ├── course-outline.md             三小時章節與小節
-│   ├── design-template.md            空白設計單
-│   ├── design-example.md             完整填寫範例
-│   ├── student-lab.md                學生循序練習
-│   ├── instructor-guide.md           教師帶課與示範提示詞
-│   ├── code-walkthrough.md           程式閱讀地圖
-│   └── expected-results.md           可核對的預期結果
-├── .agents/skills/weekly-assistant/
-│   ├── SKILL.md                      Agent 的工作指示
-│   ├── scripts/planner.py            確定性排程與報告程式
-│   ├── references/rules.md           資料格式與規則
-│   └── assets/
-│       ├── banner.png                已生成、可重用的圖
-│       └── image-prompt.md           影像提示詞與製作紀錄
-├── data/                             兩週模擬資料
-├── examples/                         已完成的 HTML 與 JSON
-├── tests/                            排程邊界與輸出測試
-└── .github/workflows/check.yml        GitHub 自動驗證設定
+.agents/skills/slide-master/
+├── SKILL.md                 先讀這個檔
+├── scripts/
+│   ├── build_deck.py        產生 PPTX 與 report.json
+│   └── inspect_deck.py      核對實際成品與來源資料
+├── assets/
+│   ├── sensor-hero.png      已生成配圖
+│   └── image-prompt.md      完整生圖 Prompt
+└── references/
+    ├── input-format.md      JSON 欄位與限制
+    └── layout.md            版型與程式閱讀地圖
+data/                        兩組範例輸入
+examples/                    兩組完整成品、PDF 與逐頁預覽
+docs/                        課程、快速挑戰與教師展示指引
+tests/                       可執行測試
 ```
 
-Windows 若看不到點開頭的資料夾，請在檔案總管開啟「顯示隱藏的項目」；GitHub 可直接瀏覽它們。
+- [三小時技術課程](docs/course-outline.md)
+- [開場展示與教師指引](docs/demo-guide.md)
+- [自主修改挑戰](docs/challenges.md)
 
-## 課程資料入口
-
-- 教師：[課程大綱](docs/course-outline.md)、[帶課指引](docs/instructor-guide.md)。
-- 學生：[設計單範本](docs/design-template.md)、[填寫範例](docs/design-example.md)、[實作練習](docs/student-lab.md)。
-- 閱讀程式：[程式閱讀地圖](docs/code-walkthrough.md)、[預期結果](docs/expected-results.md)。
-
-## 什麼是生成？什麼是重用？
-
-- 製作 Skill：由 Agent 協作產生並修正 Python；影像工具產生插畫，保存至 assets。這個專案已提供完成版本供學生閱讀與修改。
-- 執行 Skill：沿用 scripts 與 assets，對不同資料產生新結果。Python 程式本身不連線呼叫模型。
-- Python 檔案是經由執行工具呼叫的腳本，不會因放入 scripts 就自動註冊為遠端 tool。
-- 隨附圖片已由影像生成工具製作；完整提示詞見 assets/image-prompt.md。有生成能力的學生可換圖，沒有也能完成課程。
-
-## 驗證
+## 驗證與限制
 
 ```sh
 python -m unittest discover -s tests -v
 ```
 
-本機驗證通過 10 個測試方法，涵蓋相鄰／跨週行程、資料驗證、待辦期限、不重疊、時區換算、第二週重用與 HTML 跳脫。GitHub Actions 設定於 Windows／Linux、Python 3.10／3.12 執行相同檢查；是否成功請查看實際 Actions 結果。
+測試檢查實際 PPTX 的頁數、原生圖表資料、表格與統計，以及兩組輸入重用、無效資料和跨工作目錄呼叫。inspect_deck 也檢查物件是否超出頁面；文字遮擋、字型替換仍需要實際開啟或查看預覽。GitHub Actions 在 Windows／Linux、Python 3.10／3.12 執行檢查，狀態請查看 Actions。
 
-## 範例限制
+本範例是可讀、可改的固定六頁產生器。輸入文字與資料筆數有明確限制，超過會回報錯誤；沒有自動研究任意題目、解析所有文件或任意增頁的功能。輸出同名會覆寫，要保留不同版本請使用不同 `--out`。
 
-固定 UTC+08:00、貪婪排程、待辦不拆分、不含交通緩衝。只產生建議，不修改真實日曆、不發送訊息。所有人物與活動均為模擬資料；教學分享時請沿用虛構資料。
-
-本專案程式與教材採 [MIT License](LICENSE)。隨附 AI 生成圖片可隨本教學專案使用、修改與分享，不宣稱排他的著作權。
-
-Skill 結構與專案探索方式參考 [OpenAI 官方文件](https://learn.chatgpt.com/docs/build-skills)。
+程式與教材採 [MIT License](LICENSE)。AI 生成配圖可隨本教學專案使用與修改，不宣稱排他著作權。Skill 結構參考 [OpenAI 官方文件](https://learn.chatgpt.com/docs/build-skills)，投影片程式使用 [python-pptx](https://python-pptx.readthedocs.io/en/latest/)。
