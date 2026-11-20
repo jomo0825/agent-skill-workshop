@@ -1,110 +1,71 @@
-# 投影片生成大師｜Agent Skill 技術實作
+# 投影片生成大師
 
-**先看成品，直接讀 SKILL.md，再自己跑一次。**
+**把只有標題與文字的香草版 PPTX，交給 Agent 使用 imagegen 逐頁生成完整設計，再輸出新的 PowerPoint。**
 
-**[打開完整 SKILL.md](.agents/skills/slide-master/SKILL.md)** · **[下載六頁 PowerPoint](examples/demo/slides.pptx)** · **[逐頁預覽](examples/demo/preview.md)** · **[PDF](examples/demo/slides.pdf)**
+先看 [香草版原稿](examples/vanilla.pptx)、[設計版成品](examples/redesigned.pptx)，然後直接打開 [完整 SKILL.md](.agents/skills/slide-master/SKILL.md)。看懂就可以自己改，不必從頭做。
 
-![六頁成果預覽](examples/demo/overview.png)
+![四頁設計成品](examples/redesigned-overview.png)
 
-這個專案讓 Agent 沿用 Python 腳本與素材，把 JSON 內容和模擬感測器數據製作成可編輯 PowerPoint。圖表、表格、文字與技術流程圖都是原生投影片物件，AI 配圖保存於 assets，日常執行不重新生圖。
+## 先知道成品的形式
 
-## 先拆開看
+每頁都是 imagegen 生成的完整圖片，文字、插圖、圖解與版面一起生成。`assets` 只作視覺參考，不拿來拼貼頁面。Python 只讀取原稿、封裝成品與檢查結構，不負責畫投影片。
 
-從 [SKILL.md](.agents/skills/slide-master/SKILL.md) 順著連結看三個位置：
+輸出 PPTX 的文字已點陣化，不能逐字編輯，原始可編輯 PPTX 會保留。要修改內容，請改原稿並重新生成該頁。示範為四頁，工具並不限制四頁。
 
-- [scripts/build_deck.py](.agents/skills/slide-master/scripts/build_deck.py)：JSON 如何變成六頁簡報。
-- [assets/sensor-hero.png](.agents/skills/slide-master/assets/sensor-hero.png)：封面實際使用的生成配圖。
-- [references/input-format.md](.agents/skills/slide-master/references/input-format.md)：程式接受的欄位與限制。
-
-看懂就可以直接往下修改，後面的說明供需要時查閱，不必依序讀完。
-
-## 五分鐘執行
-
-先下載完整專案：GitHub 的 **Code → Download ZIP**，解壓縮後在專案根目錄開啟終端機。也可用 Git：
-
-```sh
-git clone https://github.com/jomo0825/agent-skill-workshop.git
-cd agent-skill-workshop
-```
-
-需要 Python 3.10 以上。課前完成套件安裝：
-
-```sh
-python -m pip install -r requirements.txt
-```
-
-執行範例並核對成果：
-
-```sh
-python .agents/skills/slide-master/scripts/build_deck.py --input data/sensor-demo.json --out output/demo
-python .agents/skills/slide-master/scripts/inspect_deck.py --pptx output/demo/slides.pptx --input data/sensor-demo.json
-```
-
-開啟 `output/demo/slides.pptx`。`report.json` 是本次的統計與產出資訊。macOS／Linux 若使用 `python3`，請將上述 python 改為 python3；Windows 若找不到 python，可使用已安裝的 `py -3`。PowerPoint 或 LibreOffice 可開啟成品，需安裝繁體中文字型；字型替換可能影響版面。
-
-不需要模型 API 金鑰。Python 腳本只執行本機資料處理及簡報產生；要由 Agent 完成整個流程，另在具備檔案及 Python 執行能力的 Agent 環境中使用 Skill。
-
-## 讓 Agent 操作
-
-在 Codex 中開啟專案根目錄，使用專案 Skill `slide-master`。可直接交代：
-
-> 請使用 slide-master，讀取 data/sensor-demo.json，沿用既有腳本與配圖，實際產生可編輯 PowerPoint，輸出到 output/agent-demo。執行 inspect_deck.py 核對後，給我 PPTX 與 report.json 的位置。
-
-若介面沒有自動找到 Skill，明確請 Agent 讀取 `.agents/skills/slide-master/SKILL.md` 並依其指示操作。純文字聊天環境仍需另外具備工具，才可實際執行與存檔。
-
-## 立即改一項
-
-複製 `data/sensor-demo.json`，修改 title 後重跑，開啟輸出確認改變。想直接比較第二組數據與配色：
-
-```sh
-python .agents/skills/slide-master/scripts/build_deck.py --input data/sensor-updated.json --out output/updated
-```
-
-兩組輸入都用同一套腳本與配圖。新增版型時修改對應 `add_*` 函式，不必重新生成整支程式。配圖可另存版本，再以 `--hero 圖片路徑` 指定。
-
-## 六頁內容與可核對結果
-
-1. 感測器資料分析專案封面。
-2. 系統架構：原生可編輯節點。
-3. 處理流程：原生可編輯圖形。
-4. 測試數據：兩組數列的原生折線圖。
-5. 誤差結果：計算數字與可編輯表格。
-6. 結論與重現。
-
-所有數據為教學模擬值。第一組 6 筆，MAE 0.300 °C、最大絕對誤差 0.500 °C。第二組 4 筆，MAE 0.150 °C、最大絕對誤差 0.300 °C。腳本未連接實際感測器，也不以這些數字宣稱產品性能。
-
-## 專案地圖
+## 看檔案就能開始
 
 ```text
 .agents/skills/slide-master/
-├── SKILL.md                 先讀這個檔
-├── scripts/
-│   ├── build_deck.py        產生 PPTX 與 report.json
-│   └── inspect_deck.py      核對實際成品與來源資料
-├── assets/
-│   ├── sensor-hero.png      已生成配圖
-│   └── image-prompt.md      完整生圖 Prompt
-└── references/
-    ├── input-format.md      JSON 欄位與限制
-    └── layout.md            版型與程式閱讀地圖
-data/                        兩組範例輸入
-examples/                    兩組完整成品、PDF 與逐頁預覽
-docs/                        課程、快速挑戰與教師展示指引
-tests/                       可執行測試
+  SKILL.md                 六個部分，串起完整流程
+  scripts/                 讀取、封裝、結構檢查
+  assets/
+    style-board.png        視覺風格總覽
+    examples/              四頁 imagegen 完整投影片參考
+  references/              設計規則、內容保留、Prompt 與品質檢查
+examples/
+  vanilla.pptx             可編輯的四頁香草版
+  redesigned.pptx          imagegen 完整圖片封裝成品
+  vanilla.pdf              原稿預覽
+  redesigned.pdf           成品預覽
+  source.json              逐頁內容與非可見備註
+  preview.md               逐頁前後對照
+docs/                      課程、操作與修改挑戰
+tests/                     可重現的工具測試
 ```
 
-- [三小時技術課程](docs/course-outline.md)
-- [開場展示與教師指引](docs/demo-guide.md)
-- [自主修改挑戰](docs/challenges.md)
+## 路線 A：不生圖，先在自己電腦重現封裝結果
 
-## 驗證與限制
+需要 Python 3.10 以上。在儲存庫根目錄執行，Windows 可將 `python` 換成 `py`。建議使用自己的虛擬環境。
 
 ```sh
-python -m unittest discover -s tests -v
+python -m pip install -r requirements.txt
+python .agents/skills/slide-master/scripts/extract_deck.py examples/vanilla.pptx output/work/source.json
+python .agents/skills/slide-master/scripts/assemble_deck.py output/work/source.json .agents/skills/slide-master/assets/examples output/reproduced.pptx
+python .agents/skills/slide-master/scripts/check_deck.py output/reproduced.pptx --manifest output/work/source.json --images .agents/skills/slide-master/assets/examples
 ```
 
-測試檢查實際 PPTX 的頁數、原生圖表資料、表格與統計，以及兩組輸入重用、無效資料和跨工作目錄呼叫。inspect_deck 也檢查物件是否超出頁面；文字遮擋、字型替換仍需要實際開啟或查看預覽。GitHub Actions 在 Windows／Linux、Python 3.10／3.12 執行檢查，狀態請查看 Actions。
+這條路線使用已由 imagegen 生成的四頁圖，只示範封裝，不會呼叫 imagegen。重跑請換輸出檔名，腳本不覆寫已有檔案。
 
-本範例是可讀、可改的固定六頁產生器。輸入文字與資料筆數有明確限制，超過會回報錯誤；沒有自動研究任意題目、解析所有文件或任意增頁的功能。輸出同名會覆寫，要保留不同版本請使用不同 `--out`。
+## 路線 B：讓 Agent 真正重製一份新簡報
 
-程式與教材採 [MIT License](LICENSE)。AI 生成配圖可隨本教學專案使用與修改，不宣稱排他著作權。Skill 結構參考 [OpenAI 官方文件](https://learn.chatgpt.com/docs/build-skills)，投影片程式使用 [python-pptx](https://python-pptx.readthedocs.io/en/latest/)。
+需要具備 **imagegen 與 Python 執行能力** 的 Agent 環境。這個儲存庫不會安裝 imagegen，也沒有用 API key 生圖的隱藏腳本。一般聊天介面是否能讀取本機 Skill，依平台支援而定。
+
+在支援專案 Skill 的環境開啟這個專案，或請 Agent 直接讀取上述 `SKILL.md`，再交付原稿：
+
+> 使用投影片生成大師，將 examples/vanilla.pptx 重新設計成科技風簡報。保留原文、頁數與頁序，每頁必須用 imagegen 生成完整畫面，不能用素材拼貼。保留每頁 Prompt，將圖片與新 PPTX 存在 output/my-redesign。
+
+Agent 會讀原稿、寫 Prompt、呼叫 imagegen、逐頁核對，最後封裝。修改原稿後須重新抽取與生圖，不能直接沿用舊圖。沒有 imagegen 時可以走路線 A 或閱讀範例，不能聲稱完成新一輪 AI 重製。
+
+## 直接修改
+
+- 改視覺：[視覺系統](.agents/skills/slide-master/references/style-system.md)。
+- 改生成指示：[實際素材 Prompt](.agents/skills/slide-master/references/asset-prompts.md) 與 [逐頁範本](.agents/skills/slide-master/references/prompt-template.md)。
+- 看腳本：[操作示範](docs/demo-guide.md)。
+- 自己挑戰：[修改任務](docs/challenges.md)。
+- 看三小時安排：[課程大綱](docs/course-outline.md)。
+
+測試：`python -m unittest discover -s tests -v`。自動測試驗證抽取與封裝，不能證明生圖文字正確。中文與圖像仍須逐頁檢視。
+
+## 來源與授權
+
+本專案借鏡教師提供的 Rinne Slide Designer「逐頁整頁生成」流程，另行撰寫教學 Skill 與腳本，沒有收錄 Rinne 原始程式、角色或參考圖片。五張視覺素材由內建 imagegen 新生成，Prompt 隨附。程式與文件採 MIT 授權；生成圖片作為課堂範例隨附，不代表真人或實際事件。

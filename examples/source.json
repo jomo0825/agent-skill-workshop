@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "source": "vanilla.pptx",
+  "source_sha256": "f6ca6a65c1b8b6c71a6893e2d3cded82768d04324bb2c1e679783c06848c99fd",
+  "slide_count": 4,
+  "slides": [
+    {
+      "number": 1,
+      "visible_text": [
+        "投影片生成大師",
+        "從香草版到視覺設計",
+        "Agent Skill 技術實作"
+      ],
+      "notes": "深色封面。左側標題，右側以稜鏡呈現原稿轉換為設計稿。",
+      "media": [],
+      "tables": [],
+      "review_required": []
+    },
+    {
+      "number": 2,
+      "visible_text": [
+        "一個 Skill，三種資源",
+        "scripts：處理檔案",
+        "assets：提供視覺素材",
+        "references：保存設計規則"
+      ],
+      "notes": "白底概念頁。以三個不同意象呈現三種資源。",
+      "media": [],
+      "tables": [],
+      "review_required": []
+    },
+    {
+      "number": 3,
+      "visible_text": [
+        "從原稿到成品",
+        "讀取原稿",
+        "選擇風格",
+        "逐頁生成",
+        "組裝與檢查"
+      ],
+      "notes": "白底流程頁。四個步驟由左到右，箭頭連接。",
+      "media": [],
+      "tables": [],
+      "review_required": []
+    },
+    {
+      "number": 4,
+      "visible_text": [
+        "內容保留，設計升級",
+        "香草版",
+        "標題與文字",
+        "設計版",
+        "圖像與版面",
+        "保留原文與頁序"
+      ],
+      "notes": "比較頁。以深淺對照原稿與設計稿，下方強調保留原文與頁序。",
+      "media": [],
+      "tables": [],
+      "review_required": []
+    }
+  ],
+  "extraction_notice": "Approximate reading order; inspect original slides including master/background content."
+}
